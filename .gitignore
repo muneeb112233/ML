@@ -3,6 +3,7 @@
 venv
 .venv
 VE/
+VE
 .env
 # --- Operating System Files ---
 .DS_Store
