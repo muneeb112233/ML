@@ -1,0 +1,31 @@
+
+.Venv
+venv
+.venv
+VE/
+.env
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
+*.log
+
+# --- Python Cache (Compiled bytecode that recreates itself automatically) ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# --- Virtual Environments (Massive folders containing downloaded packages) ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- IDE and Code Editor Settings ---
+.vscode/
+.idea/
+
+# --- Secrets and Credentials (Never push these to GitHub!) ---
+.env
+secret.json
