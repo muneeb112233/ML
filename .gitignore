@@ -30,3 +30,4 @@ ENV/
 # --- Secrets and Credentials (Never push these to GitHub!) ---
 .env
 secret.json
+.continue
