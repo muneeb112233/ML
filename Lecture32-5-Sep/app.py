@@ -1,4 +1,5 @@
 import pickle
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -175,9 +176,13 @@ FEATURES = [
 ]
 
 
+# Model path anchored to this file's folder — works no matter where the app runs from
+MODEL_PATH = Path(__file__).parent / "diabetes_model.pkl"
+
+
 @st.cache_resource
 def load_model():
-    with open("diabetes_model.pkl", "rb") as f:
+    with open(MODEL_PATH, "rb") as f:
         return pickle.load(f)
 
 
