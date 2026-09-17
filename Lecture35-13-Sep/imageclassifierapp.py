@@ -53,7 +53,7 @@ if best_model is None:
 # Sidebar info
 with st.sidebar:
     st.header("About")
-    st.markdown("- Uses **HOG + HSV** features (same pipeline as notebook)\n- Model file: `vehicle_model.pkl`\n- Deploy: push to GitHub → Streamlit Community Cloud")
+    st.markdown("- Uses **HOG (Histogram of Oriented Gradients) + HSV (Histogram of HSV - Hue, Saturation )** features \n- Model file: `vehicle_model.pkl`\n")
     st.markdown("**Classes:**")
     for c in classes:
         st.write(f"- {c}")
