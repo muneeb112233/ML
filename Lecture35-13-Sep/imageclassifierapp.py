@@ -5,7 +5,7 @@ import pickle
 from skimage.feature import hog
 
 # ---------- CONFIG ----------
-MODEL_PATH = "vehicle_model.pkl"
+MODEL_PATH = "Lecture35-13-Sep/vehicle_model.pkl"
 IMG_SIZE = 128
 
 # ---------- CACHED LOAD ----------
