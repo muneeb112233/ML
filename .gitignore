@@ -22,6 +22,10 @@ venv/
 .venv/
 env/
 ENV/
+tf_env/
+*_env/
+*Envs
+
 
 # --- IDE and Code Editor Settings ---
 .vscode/
