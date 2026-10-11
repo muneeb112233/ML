@@ -12,7 +12,7 @@ import joblib
 # ===================== CONFIG: point to your files =====================
 MODEL_PATHS = {
     "Scaled (with scaler.pkl)":   "stable_iris_model.keras",       
-    "Unscaled (raw features)":    "iris_model_unscaled.pkl",      
+    "Unscaled (raw features)":    "iris_model_unscaled.keras",      
 }
 SCALER_PATH = "scaler.pkl"
 # =======================================================================
@@ -77,6 +77,25 @@ for name, path in MODEL_PATHS.items():
 
 class_names = np.array(["setosa", "versicolor", "virginica"])
 
+# ----------------------------- Sample data -----------------------------
+sample_records = [
+    {"sepal_length": 5.1, "sepal_width": 3.5, "petal_length": 1.4, "petal_width": 0.2},
+    {"sepal_length": 4.9, "sepal_width": 3.0, "petal_length": 1.4, "petal_width": 0.2},
+    {"sepal_length": 7.0, "sepal_width": 3.2, "petal_length": 4.7, "petal_width": 1.4},
+    {"sepal_length": 6.0, "sepal_width": 2.9, "petal_length": 4.5, "petal_width": 1.5},
+    {"sepal_length": 6.3, "sepal_width": 3.3, "petal_length": 6.0, "petal_width": 2.5},
+    {"sepal_length": 5.9, "sepal_width": 3.0, "petal_length": 5.1, "petal_width": 1.8},
+    {"sepal_length": 5.5, "sepal_width": 2.4, "petal_length": 3.8, "petal_width": 1.1},
+    {"sepal_length": 6.7, "sepal_width": 3.1, "petal_length": 5.6, "petal_width": 2.4},
+    {"sepal_length": 5.0, "sepal_width": 3.4, "petal_length": 1.5, "petal_width": 0.2},
+    {"sepal_length": 6.9, "sepal_width": 3.1, "petal_length": 4.9, "petal_width": 1.5},
+]
+sample_df = pd.DataFrame(sample_records)
+
+# Initialize session state for persistent inputs across reruns
+if "slider_vals" not in st.session_state:
+    st.session_state.slider_vals = sample_records[0].copy()
+
 # ----------------------------- Header -----------------------------
 st.markdown('<h1 class="title-text">🌸 Iris ANN Classifier</h1>', unsafe_allow_html=True)
 st.markdown("A neural network trained on the Iris dataset. Pick a model, adjust the "
@@ -92,26 +111,11 @@ model_choice = st.radio(
     list(models.keys()),
     horizontal=True,
 )
-use_scaler = "Scaled" in model_choice
+use_scaler = "Scaled" in str(model_choice)
 model = models[model_choice]
 
 if use_scaler and scaler is None:
     st.warning("You selected the scaled model but `scaler.pkl` wasn't found.")
-
-# ----------------------------- Sample table -----------------------------
-sample_records = [
-    {"sepal_length": 5.1, "sepal_width": 3.5, "petal_length": 1.4, "petal_width": 0.2},
-    {"sepal_length": 4.9, "sepal_width": 3.0, "petal_length": 1.4, "petal_width": 0.2},
-    {"sepal_length": 7.0, "sepal_width": 3.2, "petal_length": 4.7, "petal_width": 1.4},
-    {"sepal_length": 6.0, "sepal_width": 2.9, "petal_length": 4.5, "petal_width": 1.5},
-    {"sepal_length": 6.3, "sepal_width": 3.3, "petal_length": 6.0, "petal_width": 2.5},
-    {"sepal_length": 5.9, "sepal_width": 3.0, "petal_length": 5.1, "petal_width": 1.8},
-    {"sepal_length": 5.5, "sepal_width": 2.4, "petal_length": 3.8, "petal_width": 1.1},
-    {"sepal_length": 6.7, "sepal_width": 3.1, "petal_length": 5.6, "petal_width": 2.4},
-    {"sepal_length": 5.0, "sepal_width": 3.4, "petal_length": 1.5, "petal_width": 0.2},
-    {"sepal_length": 6.9, "sepal_width": 3.1, "petal_length": 4.9, "petal_width": 1.5},
-]
-sample_df = pd.DataFrame(sample_records)
 
 # ----------------------------- Layout -----------------------------
 col_left, col_right = st.columns([1.1, 1])
@@ -120,11 +124,10 @@ with col_left:
     st.subheader("🌱 Try a sample flower")
     st.caption("Click a record to load it into the sliders.")
 
-    defaults = sample_records[0].copy()
     for idx, row in sample_df.iterrows():
         c0, c1, c2 = st.columns([0.4, 4, 1.3])
         with c0:
-            st.markdown(f"**{idx+1}**")
+            st.markdown(f"**{int(idx) + 1}**")
         with c1:
             st.markdown(
                 f"SL `{row.sepal_length}` · SW `{row.sepal_width}` · "
@@ -132,87 +135,102 @@ with col_left:
             )
         with c2:
             if st.button("Try this", key=f"sample_{idx}"):
-                defaults = row.to_dict()
+                st.session_state.slider_vals = row.to_dict()
                 st.rerun()
 
 with col_right:
     st.subheader("🎚️ Flower measurements")
-    sepal_length = st.slider("Sepal length (cm)", 4.0, 8.0, float(defaults["sepal_length"]), 0.1)
-    sepal_width  = st.slider("Sepal width (cm)",  2.0, 4.5, float(defaults["sepal_width"]),  0.1)
-    petal_length = st.slider("Petal length (cm)", 1.0, 7.0, float(defaults["petal_length"]), 0.1)
-    petal_width  = st.slider("Petal width (cm)",  0.1, 2.5, float(defaults["petal_width"]),  0.1)
+    sepal_length = st.slider("Sepal length (cm)", 4.0, 8.0, float(st.session_state.slider_vals["sepal_length"]), 0.1)
+    sepal_width  = st.slider("Sepal width (cm)",  2.0, 4.5, float(st.session_state.slider_vals["sepal_width"]),  0.1)
+    petal_length = st.slider("Petal length (cm)", 1.0, 7.0, float(st.session_state.slider_vals["petal_length"]), 0.1)
+    petal_width  = st.slider("Petal width (cm)",  0.1, 2.5, float(st.session_state.slider_vals["petal_width"]),  0.1)
+    
+    # Store updated slider positions back into session state
+    st.session_state.slider_vals = {
+        "sepal_length": sepal_length,
+        "sepal_width": sepal_width,
+        "petal_length": petal_length,
+        "petal_width": petal_width,
+    }
+    
+    # 🆕 Added Explicit Predict Button
+    predict_btn = st.button("🔮 Predict Species", type="primary", use_container_width=True)
 
 # ----------------------------- Prediction -----------------------------
-input_vec = np.array([[sepal_length, sepal_width, petal_length, petal_width]], dtype=float)
+# We only calculate and show results if they click the manual button 
+if predict_btn:
+    input_vec = np.array([[sepal_length, sepal_width, petal_length, petal_width]], dtype=float)
 
-if use_scaler and scaler is not None:
-    X_in = scaler.transform(input_vec)
-else:
-    X_in = input_vec
+    if use_scaler and scaler is not None:
+        X_in = scaler.transform(input_vec)
+    else:
+        X_in = input_vec
 
-probs = model.predict(X_in, verbose=0)[0]
-pred_idx = int(np.argmax(probs))
-pred_class = class_names[pred_idx]
-confidence = probs[pred_idx]
+    probs = model.predict(X_in, verbose=0)[0]
+    pred_idx = int(np.argmax(probs))
+    pred_class = class_names[pred_idx]
+    confidence = probs[pred_idx]
 
-species_colors = {
-    "setosa":     "#34d399",
-    "versicolor": "#60a5fa",
-    "virginica":  "#f472b6",
-}
-pred_color = species_colors[pred_class]
+    species_colors = {
+        "setosa":     "#34d399",
+        "versicolor": "#60a5fa",
+        "virginica":  "#f472b6",
+    }
+    pred_color = species_colors[pred_class]
 
-# ----------------------------- Result Card -----------------------------
-st.markdown("### 🎯 Prediction")
-st.markdown(
-    f"""
-    <div class="result-card">
-        <div style="display:flex; align-items:center; gap:16px;">
-            <div style="font-size:48px;">🌸</div>
-            <div>
-                <div style="color:#94a3b8; font-size:13px; letter-spacing:1px;">PREDICTED SPECIES</div>
-                <div class="species-name" style="color:{pred_color};">{pred_class.capitalize()}</div>
-            </div>
-        </div>
-        <div style="margin-top:14px; color:#cbd5e1; font-size:15px;">
-            Confidence: <b style="color:{pred_color};">{confidence*100:.2f}%</b>
-            &nbsp;·&nbsp; <span style="color:#94a3b8; font-size:13px;">{model_choice}</span>
-        </div>
-        <div style="margin-top:10px; background:rgba(15,23,42,0.6); border-radius:10px; overflow:hidden;">
-            <div style="height:14px; width:{confidence*100:.2f}%;
-                        background:{pred_color}; transition:width 0.5s;"></div>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-# ----------------------------- Probability Bars -----------------------------
-st.markdown("### 📊 Class probabilities")
-prob_df = pd.DataFrame({
-    "Species": [c.capitalize() for c in class_names],
-    "Probability": probs,
-    "Color": [species_colors[c] for c in class_names],
-}).sort_values("Probability", ascending=False)
-
-for _, r in prob_df.iterrows():
-    pct = r["Probability"] * 100
+    # ----------------------------- Result Card -----------------------------
+    st.markdown("### 🎯 Prediction")
     st.markdown(
         f"""
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-            <div style="width:90px; color:#e2e8f0; font-weight:600;">{r['Species']}</div>
-            <div style="flex:1; background:rgba(15,23,42,0.6); border-radius:8px; overflow:hidden;">
-                <div class="prob-bar" style="width:{pct:.2f}%; background:{r['Color']};">
-                    {pct:.2f}%
+        <div class="result-card">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div style="font-size:48px;">🌸</div>
+                <div>
+                    <div style="color:#94a3b8; font-size:13px; letter-spacing:1px;">PREDICTED SPECIES</div>
+                    <div class="species-name" style="color:{pred_color};">{pred_class.capitalize()}</div>
                 </div>
+            </div>
+            <div style="margin-top:14px; color:#cbd5e1; font-size:15px;">
+                Confidence: <b style="color:{pred_color};">{confidence*100:.2f}%</b>
+                &nbsp;·&nbsp; <span style="color:#94a3b8; font-size:13px;">{model_choice}</span>
+            </div>
+            <div style="margin-top:10px; background:rgba(15,23,42,0.6); border-radius:10px; overflow:hidden;">
+                <div style="height:14px; width:{confidence*100:.2f}%;
+                            background:{pred_color}; transition:width 0.5s;"></div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-st.markdown("---")
-st.caption(
-    f"Model: **{model_choice}** · Scaler: "
-    f"{'✅ applied' if (use_scaler and scaler is not None) else '⛔ raw features'}"
-)
+    # ----------------------------- Probability Bars -----------------------------
+    st.markdown("### 📊 Class probabilities")
+    prob_df = pd.DataFrame({
+        "Species": [c.capitalize() for c in class_names],
+        "Probability": probs,
+        "Color": [species_colors[c] for c in class_names],
+    }).sort_values("Probability", ascending=False)
+
+    for _, r in prob_df.iterrows():
+        pct = r["Probability"] * 100
+        st.markdown(
+            f"""
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                <div style="width:90px; color:#e2e8f0; font-weight:600;">{r['Species']}</div>
+                <div style="flex:1; background:rgba(15,23,42,0.6); border-radius:8px; overflow:hidden;">
+                    <div class="prob-bar" style="width:{pct:.2f}%; background:{r['Color']};">
+                        {pct:.2f}%
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("---")
+    st.caption(
+        f"Model: **{model_choice}** · Scaler: "
+        f"{'✅ applied' if (use_scaler and scaler is not None) else '⛔ raw features'}"
+    )
+else:
+    st.info("💡 Adjust measurements above or pick a sample flower, then click **Predict Species** to view results.")
