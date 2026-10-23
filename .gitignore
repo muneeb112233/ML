@@ -5,6 +5,7 @@ venv
 VE/
 VE
 .env
+*.pt
 # --- Operating System Files ---
 .DS_Store
 Thumbs.db
